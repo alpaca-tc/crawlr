@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 require 'bundler/setup'
+require 'pry'
 require 'crawlr'
+
+Dir[File.expand_path('support/**/*.rb', __dir__)].each { |f| require(f) }
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

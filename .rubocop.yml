@@ -18,6 +18,9 @@ Bundler:
 Naming:
   Enabled: false
 
+Metrics/AbcSize:
+  Enabled: false
+
 Metrics/BlockNesting:
   Enabled: false
 

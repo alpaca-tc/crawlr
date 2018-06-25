@@ -9,6 +9,8 @@ gem 'rubocop'
 gem 'guard'
 gem 'guard-rspec'
 gem 'guard-rubocop'
+gem 'activesupport'
+gem 'nokogiri'
 
 # Specify your gem's dependencies in crawlr.gemspec
 gemspec
