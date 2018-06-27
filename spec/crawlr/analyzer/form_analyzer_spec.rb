@@ -13,6 +13,9 @@ RSpec.describe Crawlr::Analyzer::FormAnalyzer do
       it do
         subject
         expect(web_site.models.size).to eq(2)
+        Crawlr::Output.new(web_site).print_all
+
+        binding.pry
       end
     end
   end

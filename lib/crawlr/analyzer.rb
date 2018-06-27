@@ -2,13 +2,15 @@
 
 module Crawlr
   class Analyzer
-    def self.registory
+    def self.registry
       @registry ||= []
     end
 
     def self.register(analyzer)
       registry.push(analyzer)
     end
+
+    register(Crawlr::Analyzer::FormAnalyzer)
 
     def initialize(web_site)
       @web_site = web_site
