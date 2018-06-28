@@ -5,7 +5,20 @@ require 'capybara'
 require 'selenium-webdriver'
 
 Capybara.register_driver :selenium do |app|
-  Capybara::Selenium::Driver.new(app, browser: :chrome)
+  capabilities = Selenium::WebDriver::Remote::Capabilities.chrome(
+    perfLoggingPrefs: {
+      enableNetwork: true,
+      enablePage: true,
+      enableTimeline: true,
+      traceCategories: %w[browser devtools]
+    }
+  )
+
+  Capybara::Selenium::Driver.new(
+    app,
+    browser: :chrome,
+    desired_capabilities: capabilities
+  )
 end
 
 Capybara.default_driver = :selenium

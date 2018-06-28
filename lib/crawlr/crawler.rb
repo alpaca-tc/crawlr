@@ -7,14 +7,21 @@ module Crawlr
     end
 
     def start
-      binding.pry
-      raise NotImplementedError, 'no'
+      first_visit!
+
+      while web_site.web_pages.initial.exists?
+        record = web_site.web_pages.initial.order(id: :desc).first
+        Crawler::PageCrawler.new(web_site: web_site, web_page: record).process
+      end
+
+      puts "Done"
     end
 
     private
 
-    def current_session
-      Capybara.current_session
+    def first_visit!
+      web_page = web_site.web_pages.find_or_create_by!(http_method: 'get', url: web_site.uri.to_s)
+      Crawler::PageCrawler.new(web_site: web_site, web_page: web_page).process unless web_page.done?
     end
 
     def method_missing(action, *args, &block)
