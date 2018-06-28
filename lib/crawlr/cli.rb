@@ -1,5 +1,16 @@
 # frozen_string_literal: true
 
+require 'pry'
+require 'capybara'
+require 'selenium-webdriver'
+
+Capybara.register_driver :selenium do |app|
+  Capybara::Selenium::Driver.new(app, browser: :chrome)
+end
+
+Capybara.default_driver = :selenium
+Capybara.javascript_driver = :selenium
+
 module Crawlr
   class Cli
     def self.run(argv)
@@ -17,6 +28,12 @@ module Crawlr
       when 'clean'
         load File.expand_path('script/clean.rb', __dir__)
         load File.expand_path('script/setup.rb', __dir__)
+      when 'start'
+        url = @argv[1]
+        uri = URI.parse(url)
+
+        web_site = Model::WebSite.find_or_create_by!(protocol: uri.scheme, host: uri.host, path_prefix: uri.path)
+        Crawler.new(web_site).start
       else
       end
 

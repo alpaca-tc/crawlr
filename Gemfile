@@ -14,6 +14,9 @@ gem 'nokogiri'
 
 gem 'activerecord'
 gem 'sqlite3'
+gem 'capybara'
+gem 'selenium-webdriver'
+gem 'chromedriver-helper'
 
 # Specify your gem's dependencies in crawlr.gemspec
 gemspec
