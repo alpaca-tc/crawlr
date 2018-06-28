@@ -12,5 +12,8 @@ gem 'guard-rubocop'
 gem 'activesupport'
 gem 'nokogiri'
 
+gem 'activerecord'
+gem 'sqlite3'
+
 # Specify your gem's dependencies in crawlr.gemspec
 gemspec
