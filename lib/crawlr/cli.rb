@@ -13,7 +13,10 @@ module Crawlr
     def run
       case @argv.first
       when 'setup'
-        load File.expand_path('model/setup.rb', __dir__)
+        load File.expand_path('script/setup.rb', __dir__)
+      when 'clean'
+        load File.expand_path('script/clean.rb', __dir__)
+        load File.expand_path('script/setup.rb', __dir__)
       else
       end
 
