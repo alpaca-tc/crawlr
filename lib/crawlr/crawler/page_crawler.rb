@@ -1,19 +1,25 @@
 module Crawlr
   class Crawler
     class PageCrawler
-      attr_reader :web_site, :web_page
+      attr_reader :web_site, :web_page, :skipped
 
       delegate_missing_to :current_session
 
       def initialize(web_site:, web_page:)
         @web_site = web_site
         @web_page = web_page
+        @skipped = false
       end
 
       def process
         return if web_page.done?
 
-        create_web_page_session!
+        unless web_site.ignore_path_patterns.overflowed?(web_page.url)
+          create_web_page_session!
+          return if skipped
+        end
+
+        web_site.ignore_path_patterns.overflowed!(web_page.url)
         web_page.done!
       end
 
@@ -22,7 +28,20 @@ module Crawlr
       def create_web_page_session!
         return if web_page.web_page_session
 
+        Crawlr.debugger.debug("Crawlering #{web_page.url}")
+
         visit(web_page.url) unless current_url == web_page.url
+
+        # if redirected
+        unless current_url == web_page.url
+          Crawlr.debugger.debug("redirected #{web_page.url} => #{current_url}")
+          current_page = web_site.web_pages.find_or_initialize_by(http_method: 'get', url: current_url)
+          current_page.update!(priority: Time.now.to_i, state: 'rerun')
+          web_page.update!(priority: -Time.now.to_i)
+          @skipped = true
+          return
+        end
+
         extract_web_pages!
         extract_forms!
 
@@ -62,9 +81,12 @@ module Crawlr
           next if form_pattern.persisted? && form_pattern.skipped?
 
           mark_element(form) do
+            Crawlr.debugger.debug("Crawlering #{web_page.url} / #{form.path}")
             http_method = (form.attributes['method']&.value || 'get').underscore
 
             if form_pattern.persisted?
+              next if web_site.ignore_path_patterns.overflowed!(current_url)
+
               form_pattern.params.each do |key, value|
                 element = form.css(%Q!input[name="#{key}"]!).first
                 set_element_value(element.path, value)
@@ -85,6 +107,10 @@ module Crawlr
               form_pattern.update!(params: params)
 
               submit_element(form.path)
+
+              # until Crawlr::Keyboard.ask?("Suceeded?")
+              #   submit_element(form.path)
+              # end
 
               # サブミット後のページ
               return web_site.web_pages.find_or_create_by!(http_method: http_method, url: current_url)

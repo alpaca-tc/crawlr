@@ -4,8 +4,14 @@ module Crawlr
   module Model
     class WebSite < ApplicationRecord
       has_many :web_pages, class_name: 'Crawlr::Model::WebPage'
+      has_many :ignore_path_patterns, class_name: 'Crawlr::Model::IgnorePathPattern'
 
       enum protocol: %w[https http]
+
+      def self.from_url(url)
+        uri = URI.parse(url)
+        Model::WebSite.find_or_initialize_by(protocol: uri.scheme, host: uri.host, path_prefix: uri.path)
+      end
 
       def uri
         URI.parse("#{protocol}://#{[host, path_prefix].join('/').remove(/\/$/)}")

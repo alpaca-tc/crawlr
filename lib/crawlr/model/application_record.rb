@@ -6,7 +6,8 @@ module Crawlr
       establish_connection(adapter: "sqlite3", database: File.expand_path('../../../tmp/crawlr', __dir__))
 
       self.abstract_class = true
-      self.logger = Logger.new(STDOUT)
+      # self.logger = Logger.new(STDOUT)
+      self.logger = Logger.new('/dev/null')
     end
   end
 end

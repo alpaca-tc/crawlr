@@ -5,20 +5,7 @@ require 'capybara'
 require 'selenium-webdriver'
 
 Capybara.register_driver :selenium do |app|
-  capabilities = Selenium::WebDriver::Remote::Capabilities.chrome(
-    perfLoggingPrefs: {
-      enableNetwork: true,
-      enablePage: true,
-      enableTimeline: true,
-      traceCategories: %w[browser devtools]
-    }
-  )
-
-  Capybara::Selenium::Driver.new(
-    app,
-    browser: :chrome,
-    desired_capabilities: capabilities
-  )
+  Capybara::Selenium::Driver.new(app, browser: :chrome)
 end
 
 Capybara.default_driver = :selenium
@@ -43,10 +30,16 @@ module Crawlr
         load File.expand_path('script/setup.rb', __dir__)
       when 'start'
         url = @argv[1]
-        uri = URI.parse(url)
+        web_site = Model::WebSite.from_url(url)
+        web_site.save!
 
-        web_site = Model::WebSite.find_or_create_by!(protocol: uri.scheme, host: uri.host, path_prefix: uri.path)
         Crawler.new(web_site).start
+      when 'debug'
+        binding.pry
+      when 'ignore'
+        regexp = @argv[1]
+        web_site = Model::WebSite.first
+        web_site.ignore_path_patterns.find_or_create_by!(regexp_string: regexp)
       else
       end
 

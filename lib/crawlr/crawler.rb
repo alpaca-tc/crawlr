@@ -9,8 +9,8 @@ module Crawlr
     def start
       first_visit!
 
-      while web_site.web_pages.initial.exists?
-        record = web_site.web_pages.initial.order(id: :desc).first
+      while web_site.web_pages.jobs.exists?
+        record = web_site.web_pages.jobs.first
         Crawler::PageCrawler.new(web_site: web_site, web_page: record).process
       end
 

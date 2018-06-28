@@ -9,6 +9,8 @@ module Crawlr
           return true
         elsif input =~ /^n(?:o)?$/i
           return false
+        elsif input =~ /d/
+          binding.pry
         else
           STDERR.puts('Please input y or n')
         end

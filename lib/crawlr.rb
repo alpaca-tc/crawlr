@@ -10,5 +10,7 @@ require 'crawlr/version'
 require 'nokogiri'
 
 module Crawlr
-  # Your code goes here...
+  def self.debugger
+    @debugger ||= Logger.new(STDOUT)
+  end
 end
