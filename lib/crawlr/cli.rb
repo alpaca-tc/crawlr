@@ -40,7 +40,14 @@ module Crawlr
         regexp = @argv[1]
         web_site = Model::WebSite.first
         web_site.ignore_path_patterns.find_or_create_by!(regexp_string: regexp)
+      when 'inspect'
+        url = @argv[1]
+        web_site = Model::WebSite.from_url(url)
+        web_site.save!
+
+        Inspector.new(web_site).start
       else
+        raise NotImplementedError, 'unknown command given'
       end
 
       # web_site = Crawlr::WebSite.new(url: 'https://s2.kingtime.jp/')

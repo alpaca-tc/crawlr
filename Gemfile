@@ -17,6 +17,7 @@ gem 'sqlite3'
 gem 'capybara'
 gem 'selenium-webdriver'
 gem 'chromedriver-helper'
+gem 'rack'
 
 # Specify your gem's dependencies in crawlr.gemspec
 gemspec

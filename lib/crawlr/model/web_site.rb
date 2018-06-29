@@ -5,6 +5,7 @@ module Crawlr
     class WebSite < ApplicationRecord
       has_many :web_pages, class_name: 'Crawlr::Model::WebPage'
       has_many :ignore_path_patterns, class_name: 'Crawlr::Model::IgnorePathPattern'
+      has_many :form_patterns, through: :web_pages, source: :form_patterns
 
       enum protocol: %w[https http]
 
