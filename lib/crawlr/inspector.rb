@@ -32,18 +32,29 @@ module Crawlr
         add_resource_id_from_url(tables, url)
       end
 
-      # web_site.web_pages.done.map(&:url).each do |url|
-      #   add_resource_id_from_url(tables, url)
-      # end
+      web_site.web_pages.done.map(&:url).each do |url|
+        add_resource_id_from_url(tables, url)
+      end
 
       File.open('/tmp/result', 'w') do |output|
         tables.values.each do |table|
           output.puts("[#{table.table_name.tableize}]")
           table.attributes.each do |attribute|
-            output.puts(attribute)
+            # unless 以下はバグ 調査してない
+            output.puts(attribute.gsub('-', '_')) unless attribute.include?('.')
           end
 
           output.puts('')
+        end
+
+        tables.values.each do |table|
+          foreign_keys = table.attributes.select { |attribute| attribute.end_with?('_id') }
+          foreign_keys.each do |foreign_key|
+            table_name = foreign_key.remove('_id').tableize
+            if tables.keys.include?(table_name)
+              output.puts("#{table_name} 1--* #{table.table_name.tableize}")
+            end
+          end
         end
       end
 
@@ -67,6 +78,10 @@ module Crawlr
       params.each do |key, value|
         if maybe_attribute?(key, value)
           tables[model_name].attributes.add(key) if model_name
+        elsif value.is_a?(Hash) && value.keys.all? { |v| v =~ /\d+/ }
+          if value.length > 0
+            parse_params_to_model(tables, value.values.first, normalize_nested_attribute(key))
+          end
         else
           parse_params_to_model(tables, value, normalize_nested_attribute(key))
         end

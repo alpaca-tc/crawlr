@@ -14,6 +14,8 @@ module Crawlr
       def process
         return if web_page.done?
 
+        web_site.ignore_path_patterns.reload
+
         unless web_site.ignore_path_patterns.overflowed?(web_page.url)
           create_web_page_session!
           return if skipped

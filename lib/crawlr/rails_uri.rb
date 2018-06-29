@@ -19,7 +19,7 @@ module Crawlr
                    end
 
         value = hierarchy.first
-        params[base.tableize].add(value.tableize) if value && !maybe_id?(value) && !maybe_crud?(value)
+        params[base.tableize].add(value) if value && !maybe_id?(value) && !maybe_crud?(value)
       end
 
       params

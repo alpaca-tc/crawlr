@@ -56,9 +56,10 @@ end
 web_site = Crawlr::Model::WebSite.from_url('https://payroll.moneyforward.com/')
 web_site.save!
 
-id = '(?![_-])(\w+)[_-](\w+)(?<![_-])'
+id = '(?:(?![_-])(\w+)[_-](\w+)(?<![_-])|\d+)'
 
 %W[
+  https://support.biz.moneyforward.com/
   https://payroll.moneyforward.com/banks/#{id}/branches
   https://payroll.moneyforward.com/employees/#{id}/employee_payment_method_bonus_remained_amount/edit
   https://payroll.moneyforward.com/payroll_progresses/#{id}
@@ -69,6 +70,8 @@ id = '(?![_-])(\w+)[_-](\w+)(?<![_-])'
   https://payroll.moneyforward.com/periods/#{id}/payrolls
   https://payroll.moneyforward.com/periods/#{id}/resident_tax_fb_data/new
   https://payroll.moneyforward.com/reports/periods/#{id}/payroll_transfer_amount_statements
+  https://payroll.moneyforward.com/reports/periods/#{id}/levied_resident_tax_amount_statements
+  https://payroll.moneyforward.com/reports/periods/#{id}/department_payment_deductions
 ].each do |regexp|
   web_site.ignore_path_patterns.find_or_create_by!(regexp_string: regexp, maximum_count: 1)
 end

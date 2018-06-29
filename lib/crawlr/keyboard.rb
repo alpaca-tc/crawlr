@@ -1,6 +1,7 @@
 module Crawlr
   module Keyboard
     def self.ask?(message)
+      return true if File.exist?('/tmp/skip')
       puts message
       print('Done? y/n : ')
 
