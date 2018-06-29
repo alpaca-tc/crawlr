@@ -36,8 +36,19 @@ module Crawlr
         add_resource_id_from_url(tables, url)
       end
 
+      tables.values.each do |table|
+        foreign_keys = table.attributes.select { |attribute| attribute.end_with?('_id') }
+
+        foreign_keys.each do |foreign_key|
+          table_name = foreign_key.remove('_id').tableize
+          tables[table_name].has_many.add(table)
+        end
+      end
+
       File.open('/tmp/result', 'w') do |output|
         tables.values.each do |table|
+          next if table.no_data?
+
           output.puts("[#{table.table_name.tableize}]")
           table.attributes.each do |attribute|
             # unless 以下はバグ 調査してない
@@ -48,12 +59,8 @@ module Crawlr
         end
 
         tables.values.each do |table|
-          foreign_keys = table.attributes.select { |attribute| attribute.end_with?('_id') }
-          foreign_keys.each do |foreign_key|
-            table_name = foreign_key.remove('_id').tableize
-            if tables.keys.include?(table_name)
-              output.puts("#{table_name} 1--* #{table.table_name.tableize}")
-            end
+          table.has_many.each do |to|
+            output.puts("#{table.table_name.tableize} 1--* #{to.table_name.tableize}")
           end
         end
       end
@@ -69,7 +76,7 @@ module Crawlr
       hierarchy_params = RailsUri.new(url).to_hierarchy_params
       hierarchy_params.each do |from, column_names|
         column_names.each do |column_name|
-          tables[from.to_s.tableize].attributes.add(column_name.to_s)
+          tables[from.to_s.tableize].attributes.add(column_name.to_s) unless column_name.to_s.include?('.')
         end
       end
     end
@@ -77,7 +84,7 @@ module Crawlr
     def parse_params_to_model(tables, params, model_name = nil)
       params.each do |key, value|
         if maybe_attribute?(key, value)
-          tables[model_name].attributes.add(key) if model_name
+          tables[model_name].attributes.add(key) if model_name && !key.include?('.')
         elsif value.is_a?(Hash) && value.keys.all? { |v| v =~ /\d+/ }
           if value.length > 0
             parse_params_to_model(tables, value.values.first, normalize_nested_attribute(key))
