@@ -3,9 +3,9 @@ require 'active_record'
 module Crawlr
   module Model
     class WebSite < ApplicationRecord
-      has_many :web_pages, class_name: 'Crawlr::Model::WebPage'
-      has_many :ignore_path_patterns, class_name: 'Crawlr::Model::IgnorePathPattern'
-      has_many :form_patterns, through: :web_pages, source: :form_patterns
+      has_many :web_pages, class_name: 'Crawlr::Model::WebPage', dependent: :destroy
+      has_many :ignore_path_patterns, class_name: 'Crawlr::Model::IgnorePathPattern', dependent: :destroy
+      has_many :form_patterns, through: :web_pages
 
       enum protocol: %w[https http]
 

@@ -20,7 +20,7 @@ module Crawlr
     private
 
     def first_visit!
-      web_page = web_site.web_pages.find_or_create_by!(http_method: 'get', url: web_site.uri.to_s)
+      web_page = web_site.web_pages.find_or_create_by!(http_method: 'get', url: web_site.uri.to_s.remove(%r{/$}))
       Crawler::PageCrawler.new(web_site: web_site, web_page: web_page).process unless web_page.done?
     end
 

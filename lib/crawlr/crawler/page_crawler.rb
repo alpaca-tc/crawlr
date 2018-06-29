@@ -35,9 +35,9 @@ module Crawlr
         visit(web_page.url) unless current_url == web_page.url
 
         # if redirected
-        unless current_url == web_page.url
+        unless current_url.remove(%r{/$}) == web_page.url.remove(%r{/$})
           Crawlr.debugger.debug("redirected #{web_page.url} => #{current_url}")
-          current_page = web_site.web_pages.find_or_initialize_by(http_method: 'get', url: current_url)
+          current_page = web_site.web_pages.find_or_initialize_by(http_method: 'get', url: current_url.remove(%r{/$}))
           current_page.update!(priority: Time.now.to_i, state: 'rerun')
           web_page.update!(priority: -Time.now.to_i)
           @skipped = true
@@ -63,7 +63,7 @@ module Crawlr
           uri.scheme = web_site.protocol
           uri.host ||= web_page.uri.host
 
-          page = web_site.web_pages.find_or_initialize_by(http_method: 'get', url: uri.to_s)
+          page = web_site.web_pages.find_or_initialize_by(http_method: 'get', url: uri.to_s.remove(%r{/$}))
           page.save! unless page.done?
         end
       end
@@ -77,7 +77,7 @@ module Crawlr
         forms.each do |form|
           form_pattern = web_page.form_patterns.find_or_initialize_by(
             xpath: form.path,
-            action: form.attributes['action']&.value
+            action: (form.attributes['action']&.value).to_s
           )
 
           next if form_pattern.persisted? && form_pattern.skipped?
@@ -96,7 +96,8 @@ module Crawlr
 
               submit_element(form.path)
 
-              return web_site.web_pages.find_or_create_by!(http_method: http_method, url: current_url)
+              web_site.web_pages.find_or_create_by!(http_method: http_method, url: current_url.remove(%r{/$})) if web_site.own_url?(current_url)
+              return
             elsif Crawlr::Keyboard.ask?("If you want to inspect this form(#{form.path}), please input attributes.")
               inputs = form.css('input')
 
@@ -104,7 +105,9 @@ module Crawlr
                 name = input.attributes["name"]&.value
                 value = get_element_value(input.path)
                 [name, value]
-              }.to_h.compact
+              }.to_h
+
+              Crawlr.debugger.debug(params)
 
               form_pattern.update!(params: params)
 
@@ -115,7 +118,8 @@ module Crawlr
               # end
 
               # サブミット後のページ
-              return web_site.web_pages.find_or_create_by!(http_method: http_method, url: current_url)
+              web_site.web_pages.find_or_create_by!(http_method: http_method, url: current_url.remove(%r{/$})) if web_site.own_url?(current_url)
+              return
             else
               form_pattern.update!(skipped: true, params: {})
             end
@@ -167,7 +171,10 @@ module Crawlr
           (function() {
             // find element
             var element = document.evaluate(`#{element.path}`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
-            return element.getAttribute('style')
+
+            if (element) {
+              return element.getAttribute('style')
+            }
           })();
         JAVA_SCRIPT
 
@@ -175,8 +182,11 @@ module Crawlr
           (function() {
             // find element
             var element = document.evaluate(`#{element.path}`, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
-            element.setAttribute('style', 'border: solid 2px red;')
-            element.focus();
+
+            if (element) {
+              element.setAttribute('style', 'border: solid 2px red;')
+              element.focus();
+            }
           })();
         JAVA_SCRIPT
 

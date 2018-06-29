@@ -25,6 +25,11 @@ module Crawlr
       params
     end
 
+    def current_namespace
+      hierarchy = extract_path(url).split('/').reject(&:blank?)
+      hierarchy.reject { |v| maybe_id?(v) || maybe_crud?(v) }.last
+    end
+
     def maybe_id?(value)
       return false unless value
       value =~ /^\d+$/ || value =~ /[A-Z]/

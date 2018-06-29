@@ -25,7 +25,8 @@ module Crawlr
           Rack::Utils.default_query_parser.normalize_params(params, key, value, Rack::Utils.default_query_parser.param_depth_limit)
         end
 
-        parse_params_to_model(tables, params.to_params_hash)
+        model_name = RailsUri.new(form_pattern.action.presence || form_pattern.web_page.url).current_namespace
+        parse_params_to_model(tables, params.to_params_hash, model_name)
       end
 
       web_site.form_patterns.map(&:action).each do |url|
@@ -52,7 +53,7 @@ module Crawlr
           output.puts("[#{table.table_name.tableize}]")
           table.attributes.each do |attribute|
             # unless 以下はバグ 調査してない
-            output.puts(attribute.gsub('-', '_')) unless attribute.include?('.')
+            output.puts(attribute.gsub('-', '_').remove('.'))
           end
 
           output.puts('')
@@ -76,18 +77,20 @@ module Crawlr
       hierarchy_params = RailsUri.new(url).to_hierarchy_params
       hierarchy_params.each do |from, column_names|
         column_names.each do |column_name|
-          tables[from.to_s.tableize].attributes.add(column_name.to_s) unless column_name.to_s.include?('.')
+          tables[from.to_s.tableize].attributes.add(column_name.to_s.remove('.'))
         end
       end
     end
 
     def parse_params_to_model(tables, params, model_name = nil)
-      params.each do |key, value|
+      (params || {}).each do |key, value|
         if maybe_attribute?(key, value)
-          tables[model_name].attributes.add(key) if model_name && !key.include?('.')
+          tables[model_name].attributes.add(key.remove('.'))
         elsif value.is_a?(Hash) && value.keys.all? { |v| v =~ /\d+/ }
-          if value.length > 0
+          if hash = value.values.find { |a| a.is_a?(Hash) }
             parse_params_to_model(tables, value.values.first, normalize_nested_attribute(key))
+          else
+            tables[model_name].attributes.add(key.remove('.'))
           end
         else
           parse_params_to_model(tables, value, normalize_nested_attribute(key))

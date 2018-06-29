@@ -72,6 +72,22 @@ id = '(?:(?![_-])(\w+)[_-](\w+)(?<![_-])|\d+)'
   https://payroll.moneyforward.com/reports/periods/#{id}/payroll_transfer_amount_statements
   https://payroll.moneyforward.com/reports/periods/#{id}/levied_resident_tax_amount_statements
   https://payroll.moneyforward.com/reports/periods/#{id}/department_payment_deductions
+  https://payroll.moneyforward.com/pa_terms/#{id}/months/#{id}/groups/#{id}/any_time_revision
+  https://payroll.moneyforward.com/period_collections/#{id}/multiple_timesheet_employee_daily_records/edit
 ].each do |regexp|
   web_site.ignore_path_patterns.find_or_create_by!(regexp_string: regexp, maximum_count: 1)
+end
+
+web_site = Crawlr::Model::WebSite.from_url('https://payroll.jobcan.jp/')
+web_site.save!
+
+%w[
+  google.com
+  id.jobcan.jp
+  https://payroll.jobcan.jp/employees/new
+  https://payroll.jobcan.jp/dashboards
+  https://payroll.jobcan.jp/oauth
+  https://payroll.jobcan.jp/employees/\d+
+].each do |regexp|
+  web_site.ignore_path_patterns.find_or_create_by!(regexp_string: regexp, maximum_count: 0)
 end

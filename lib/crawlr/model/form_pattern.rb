@@ -7,5 +7,9 @@ module Crawlr
 
       serialize :params, JSON
     end
+
+    def action=(value)
+      super(value.to_s.remove(%r{/$}))
+    end
   end
 end
